@@ -57,7 +57,7 @@ Scene 01_Normal, starter policy, two pauses with the F1 debug panel (25 Nov).
 
 ### Feedback into a later decision
 
-`MatchController` confirms the pickup and gives the rival cargo. On the next decision tick `Capture` reports Cargo = True, `Infer` returns NeedsDelivery = True, and `Choose` takes the delivery branch first, so the task switches **Collect → Deliver**.
+The rival reached target 11. `MatchController.Update` checked that the item was available and within distance, then called `MatchState.TryCollect`, which set `cargo[team] = true`, meaning the rival is carrying the scrap. On the next tick, `PickupSensor.Capture` passed that value into the Observation as `Carrying`. `DecisionPolicy.Infer` turned it into the fact `NeedsDelivery = true` (target -1, since there's nothing to collect while carrying). In `DecisionPolicy.Choose`, the first `if` runs and returns the Deliver task, so the task switched from Collect to Deliver.
 
 Observed: the rival picked up 11, switched to Deliver and delivered it to the depot.
 
@@ -99,6 +99,6 @@ Starter: 11 pass, 6 fail (Unity Test Runner, EditMode), 25 Nov. All 7 CoreTests 
 **Code, sources or substantive tools/AI assistance I used, and how I verified them:**
 
 - **Infrastructure fix:** after the teacher's 24 Nov "Improve readability" commit, the rival never moved. Line 67 of `Runtime/Navigator.cs` had a misplaced parenthesis. I put the `)` back after `Pending`, checked that the rival moves, collects and delivers in 01_Normal, and told the teacher. CoreTests still pass.
-- **AI assistance (Claude):** helped me get the tests running in Unity's Test Runner and helped structure and format this file from my own answers and screenshots. Predictions and observations are my own.
+- **AI assistance (Claude):** helped me get the tests running in Unity's Test Runner and helped format this file. Claude added the code-location labels in the trace tables. The predictions and observations are my own. Claude asked guiding questions and pointed me to where to look in the code, and assembled the feedback paragraph from my answers.
 
 **If unfinished: what works, exact reproduction steps, and the help I need:**
