@@ -6,7 +6,7 @@ Keep this short. Bullet points, a small table and one diagram or code trace are 
 |---|---|
 | **Name** | Alexander L F Johnsson |
 | **Exact Unity version** | 6000.3.26f1 |
-| **Checkpoint commit / repository** | https://github.com/alexlfj/fg-ai-salvage-sprint (checkpoint commit: TBD) |
+| **Checkpoint commit / repository** | https://github.com/alexlfj/fg-ai-salvage-sprint (checkpoint commit: `db15c5d` "week1: working baseline") |
 | **Current stage and anything unfinished** | Stage 0 done (scoring, win result and restart work). Stage 1 in progress. DecisionPolicy is still the starter ("nearest candidate"). Fixed a supplied bug in `Runtime/Navigator.cs` that stopped the rival from moving (see Collaboration). |
 
 ---
