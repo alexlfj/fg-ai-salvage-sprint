@@ -16,12 +16,20 @@ namespace SalvageSprint.Core
 
             int nearest = -1;
             float distance = float.PositiveInfinity;
+            
             foreach (Candidate candidate in observation.Candidates)
             {
-                // Deliberately naive: ignores Visible, Remembered and Blocked.
+
+                if (observation.CurrentTargetId == candidate.Id && candidate.Available && (candidate.Visible || candidate.Remembered))
+                {
+                    return new AgentFacts(false, candidate.Id, true);
+                }
+                
+                // ignores Blocked.
                 if ((candidate.Available && candidate.DistanceSquared < distance) && (candidate.Visible || candidate.Remembered))
                 {
-                    nearest = candidate.Id; distance = candidate.DistanceSquared;
+                    nearest = candidate.Id; 
+                    distance = candidate.DistanceSquared;
                 }
             }
             return new AgentFacts(false, nearest, false);
@@ -31,12 +39,15 @@ namespace SalvageSprint.Core
 
         public static Decision Choose(AgentFacts facts)
         {
-            // Deliberately naive: ignores RetainedTarget and any other facts.
             if (facts.NeedsDelivery)
                 return new Decision(TaskKind.Deliver, -1, "Cargo held: return to depot");
+
+            if (facts.RetainedTarget)
+                return new Decision(TaskKind.Collect, facts.SelectedTargetId, "Kept original target");
+            
             return facts.HasUsableTarget
-                ? new Decision(TaskKind.Collect, facts.SelectedTargetId, "Nearest candidate within range; reselected each tick")
-                : new Decision(TaskKind.Explore, -1, "No candidate: visit the next survey point");
+                ? new Decision(TaskKind.Collect, facts.SelectedTargetId, "Finding nearest candidate within range")
+                : new Decision(TaskKind.Explore, -1, "No candidate: find new target");
         }
     }
 }

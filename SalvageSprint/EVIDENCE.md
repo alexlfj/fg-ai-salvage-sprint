@@ -7,7 +7,7 @@ Keep this short. Bullet points, a small table and one diagram or code trace are 
 | **Name** | Alexander L F Johnsson |
 | **Exact Unity version** | 6000.3.26f1 |
 | **Checkpoint commit / repository** | https://github.com/alexlfj/fg-ai-salvage-sprint (checkpoint commit: `db15c5d` "week1: working baseline") |
-| **Current stage and anything unfinished** | Stage 0 done (scoring, win result and restart work). Stage 1 done. DecisionPolicy is still the starter logic; only the Label and Collect reason changed. Fixed a supplied bug in `Runtime/Navigator.cs` that stopped the rival from moving (see Collaboration). |
+| **Current stage and anything unfinished** | Stages 0–3 done. Stage 4 next. Fixed a supplied bug in `Runtime/Navigator.cs` that stopped the rival from moving (see Collaboration). |
 
 ---
 
@@ -95,6 +95,8 @@ Observed: the rival picked up 11, switched to Deliver and delivered it to the de
 
 Starter: 11 pass, 6 fail (Unity Test Runner, EditMode), 25 Nov. All 7 CoreTests green. The failing ones are the Stage 2-4 policy tests. No added tests.
 
+26 Nov after Stage 3: 14 pass, 3 fail.
+
 **Live walkthrough checked by / recording link if used:**
 
 ---
@@ -103,7 +105,20 @@ Starter: 11 pass, 6 fail (Unity Test Runner, EditMode), 25 Nov. All 7 CoreTests 
 
 **The original weakness and why it happened:**
 
+Stage 3 (keep a useful target): the rival only went to the nearest one. It made the rival change routes to pick up the newly-made closer scrap. It happened because we didn't check for a retained target, so the nearest-distance check in `DecisionPolicy.Infer` always ran, which meant that any scrap that was the closer one would become the current target.
+
 **What I changed and why it addresses the cause:**
+
+I added an if check before that block inside the foreach: if a candidate matches `observation.CurrentTargetId` and is still eligible (Available, and Visible or Remembered), `Infer` returns it straight away with `RetainedTarget = true`, so the distance comparison never gets the chance to replace it. If it's no longer available, it falls through to the nearest search. I also accounted for the retained-target case in `Choose()`, so the reason says "Kept original target" vs "Finding nearest candidate within range". Result: 14 pass, 3 fail (Stage 3 tests pass).
+
+**State transitions (Stage 3):**
+
+- Explore → Collect: it finds a scrap that is available, within range and visible.
+- Collect → Deliver: a successful pickup sets `Carrying` to true, so `Infer` sets `NeedsDelivery = true` and `Choose` returns Deliver.
+- Deliver → Collect or Explore: after it delivers, it goes to the next remembered target. If it doesn't remember anything and there are no available visible targets within range, it explores.
+- Collect → another Collect or Explore: if the target becomes unavailable, it searches for the nearest eligible scrap and collects that instead, or explores if there is none.
+
+**F5 (target taken):** the scenario helper (`ScenarioControls.cs`, line 35) makes the player take the rival's target remotely to simulate target loss, so the scrap becomes unavailable. In `RivalBrain.Update`, if the scrap becomes unavailable, `rememberedId` is set to -1, which means forget it. Observed: the rival moved on to another target.
 
 **My counterexample or experiment: prediction, observed result, and one limitation:**
 
@@ -122,6 +137,7 @@ Stopping-distance experiment (Stage 1 step 6): Rival stopping distance changed f
 
 **Code, sources or substantive tools/AI assistance I used, and how I verified them:**
 
+- **Teacher fixes (26 Nov):** took the fixed `Runtime/Navigator.cs` and the `Classify` method in `Core/DecisionModel.cs` from the teacher repo, as announced by CJ. Ran the tests afterwards (13 pass, 4 fail, unchanged).
 - **Infrastructure fix:** after the teacher's 24 Nov "Improve readability" commit, the rival never moved. Line 67 of `Runtime/Navigator.cs` had a misplaced parenthesis. I put the `)` back after `Pending`, checked that the rival moves, collects and delivers in 01_Normal, and told the teacher. CoreTests still pass.
 - **AI assistance (Claude):** helped me get the tests running in Unity's Test Runner, asked guiding questions and pointed me to where to look in the code, and assembled this EVIDENCE.md from my answers. The predictions and observations are my own.
 
