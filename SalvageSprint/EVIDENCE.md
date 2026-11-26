@@ -7,7 +7,7 @@ Keep this short. Bullet points, a small table and one diagram or code trace are 
 | **Name** | Alexander L F Johnsson |
 | **Exact Unity version** | 6000.3.26f1 |
 | **Checkpoint commit / repository** | https://github.com/alexlfj/fg-ai-salvage-sprint (checkpoint commit: `db15c5d` "week1: working baseline") |
-| **Current stage and anything unfinished** | Stages 0–3 done. Stage 4 next. Fixed a supplied bug in `Runtime/Navigator.cs` that stopped the rival from moving (see Collaboration). |
+| **Current stage and anything unfinished** | Stages 0–4 done. Stage 5 next. Fixed a supplied bug in `Runtime/Navigator.cs` that stopped the rival from moving (see Collaboration). |
 
 ---
 
@@ -119,6 +119,18 @@ I added an if check before that block inside the foreach: if a candidate matches
 - Collect → another Collect or Explore: if the target becomes unavailable, it searches for the nearest eligible scrap and collects that instead, or explores if there is none.
 
 **F5 (target taken):** the scenario helper (`ScenarioControls.cs`, line 35) makes the player take the rival's target remotely to simulate target loss, so the scrap becomes unavailable. In `RivalBrain.Update`, if the scrap becomes unavailable, `rememberedId` is set to -1, which means forget it. Observed: the rival moved on to another target.
+
+**Stage 4: use failed-route feedback**
+
+- **F6 before the fix:** the rival can see the unreachable scrap but freezes, because the NavMesh is not connected and it cannot generate a path. Debug: Task Collect, Target 0, Travel Failed, Blocked 1, Last failure "Route failed for pickup 0; ignore for 6 seconds", Reason "Kept original target".
+- **Supplied code:** the failed-travel branch in `RivalBrain.Update` puts the pickup in `failedUntil` for 6 seconds, and `PickupSensor.Capture` passes that on as `Blocked`.
+- **Change:** in `DecisionPolicy.Infer` I added a check at the top of the loop that skips blocked candidates, so they can't be kept as the current target or picked as the nearest. All unit tests pass.
+- **Replays after the fix:**
+  - F4: the AI explores until it finds the hidden scrap, then takes it back to the depot.
+  - F5: the AI goes to the nearest available and visible scrap after losing the one it was heading for.
+  - F6: it ignores the scrap with no valid path and explores, collecting the first scrap it sees. After the cooldown, it rechecks for a new path, fails again and goes back to exploring.
+- **(a) A blocked target with an alternative:** it collects the alternative.
+- **(b) Every known target blocked:** it keeps rechecking until a route becomes valid. Until then it keeps failing and falls back to exploring.
 
 **My counterexample or experiment: prediction, observed result, and one limitation:**
 

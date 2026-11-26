@@ -20,12 +20,16 @@ namespace SalvageSprint.Core
             foreach (Candidate candidate in observation.Candidates)
             {
 
+                if (candidate.Blocked)
+                {
+                    continue;
+                }
+                
                 if (observation.CurrentTargetId == candidate.Id && candidate.Available && (candidate.Visible || candidate.Remembered))
                 {
                     return new AgentFacts(false, candidate.Id, true);
                 }
                 
-                // ignores Blocked.
                 if ((candidate.Available && candidate.DistanceSquared < distance) && (candidate.Visible || candidate.Remembered))
                 {
                     nearest = candidate.Id; 
