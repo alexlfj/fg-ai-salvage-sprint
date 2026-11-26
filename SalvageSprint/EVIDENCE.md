@@ -7,7 +7,7 @@ Keep this short. Bullet points, a small table and one diagram or code trace are 
 | **Name** | Alexander L F Johnsson |
 | **Exact Unity version** | 6000.3.26f1 |
 | **Checkpoint commit / repository** | https://github.com/alexlfj/fg-ai-salvage-sprint (checkpoint commit: `db15c5d` "week1: working baseline") |
-| **Current stage and anything unfinished** | Stages 0–4 done. Stage 5 next. Fixed a supplied bug in `Runtime/Navigator.cs` that stopped the rival from moving (see Collaboration). |
+| **Current stage and anything unfinished** | Stages 0–5 done (scenario table recorded). Fixed a supplied bug in `Runtime/Navigator.cs` that stopped the rival from moving (see Collaboration). |
 
 ---
 
@@ -84,18 +84,24 @@ Observed: the rival picked up 11, switched to Deliver and delivered it to the de
 
 | Scenario | Predicted result | Observed result and short evidence / remaining issue |
 |---|---|---|
-| Normal loop and restart | | |
-| Carrying cargo | | |
-| Hidden / remembered pickup | | |
-| Target taken | | |
-| Unreachable target | | |
-| No usable pickup | | |
+| Normal loop and restart | It gets as many scraps as it can | Collects and delivers; the match ends properly and R restarts it cleanly |
+| Carrying cargo | It returns the cargo to the depot | Starts with cargo and goes to Deliver ("Cargo held: return to depot") although scrap is visible nearby |
+| Hidden / remembered pickup | It explores until it finds the hidden scrap | It explores until it finds the hidden scrap, then takes it back to the depot |
+| Target taken | It switches to the nearest candidate after losing the one it was tracking | Goes to the nearest available and visible scrap after losing the one it was heading for |
+| Unreachable target | Fails to reach it, so that target gets a timeout and it goes to the next best candidate | Ignores the scrap with no valid path and explores; after the cooldown it rechecks, fails again and explores |
+| No usable pickup | Explores indefinitely | Task Explore, Target -1, no crash |
 
 **Supplied test result, with any added tests identified:**
 
-Starter: 11 pass, 6 fail (Unity Test Runner, EditMode), 25 Nov. All 7 CoreTests green. The failing ones are the Stage 2-4 policy tests. No added tests.
+Starter: 11 pass, 6 fail (Unity Test Runner, EditMode).
+
+25 Nov. All 7 CoreTests green. The failing ones are the Stage 2-4 policy tests. No added tests.
+
+25 Nov after Stage 2: 13 pass, 4 fail.
 
 26 Nov after Stage 3: 14 pass, 3 fail.
+
+26 Nov after Stage 4: 17 pass, 0 fail.
 
 **Live walkthrough checked by / recording link if used:**
 
