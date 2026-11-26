@@ -71,18 +71,26 @@ namespace SalvageSprint.Core
         public static TravelStatus Classify(bool onMesh, bool pending, bool completePath,
             bool hasPath, float remainingDistance, float stoppingDistance)
         {
-            if (!onMesh) return TravelStatus.Failed; // If the agent is not on the NavMesh, it cannot navigate.
-
-            if (pending) return TravelStatus.Pending; // If the agent is still calculating a path, it is in a pending state.
-
-            // If the path is not complete or the remaining distance is invalid, the navigation has failed.
-            if (!completePath || float.IsNaN(remainingDistance) || float.IsInfinity(remainingDistance))
+            if (!onMesh)
                 return TravelStatus.Failed;
 
-            // If the remaining distance is less than or equal to the stopping distance, the agent has arrived at its destination.
-            if (remainingDistance <= stoppingDistance) return TravelStatus.Arrived;
+            if (pending)
+                return TravelStatus.Pending;
 
-            // If the agent has a valid path and is still moving towards the destination, it is in a moving state.
+            if (!completePath
+                || float.IsNaN(remainingDistance)
+                || remainingDistance < 0)
+            {
+                return TravelStatus.Failed;
+            }
+
+            // Positive infinity means the remaining distance is unknown, not impossible.
+            if (float.IsPositiveInfinity(remainingDistance))
+                return hasPath ? TravelStatus.Moving : TravelStatus.Failed;
+
+            if (remainingDistance <= stoppingDistance)
+                return TravelStatus.Arrived;
+
             return hasPath ? TravelStatus.Moving : TravelStatus.Failed;
         }
     }
