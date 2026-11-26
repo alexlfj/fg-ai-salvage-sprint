@@ -6,7 +6,7 @@ Keep this short. Bullet points, a small table and one diagram or code trace are 
 |---|---|
 | **Name** | Alexander L F Johnsson |
 | **Exact Unity version** | 6000.3.26f1 |
-| **Checkpoint commit / repository** | https://github.com/alexlfj/fg-ai-salvage-sprint (checkpoint commit: `db15c5d` "week1: working baseline") |
+| **Checkpoint commit / repository** | https://github.com/alexlfj/fg-ai-salvage-sprint (checkpoint: tag `week1-checkpoint`) |
 | **Current stage and anything unfinished** | Stages 0–5 done (scenario table recorded). Fixed a supplied bug in `Runtime/Navigator.cs` that stopped the rival from moving (see Collaboration). |
 
 ---
@@ -77,6 +77,13 @@ Observed: the rival picked up 11, switched to Deliver and delivered it to the de
 **Moving a shelf and rebaking:** Prediction: the blue walkable area will adapt to the new position, making the new available floor blue and making the space the shelf is now occupying unavailable for traversal. Observed: matched the prediction. Shelf restored afterwards.
 
 **Policy label and reason:** changed `Label` to "Part 1 starter: nearest candidate within range" and the Collect reason to "Nearest candidate within range; reselected each tick".
+
+### Stage 2: perception and memory
+
+- **Before (starter):** `if (candidate.Available && candidate.DistanceSquared < distance)`. It detected hidden scraps without having seen them.
+- **After:** `if ((candidate.Available && candidate.DistanceSquared < distance) && (candidate.Visible || candidate.Remembered))`
+- **Observed in F4:** it picked up the scrap it could see (but was not the nearest), and after dropping it off it started to explore until it found the hidden scrap.
+- **Tests:** 13 pass, 4 fail.
 
 ---
 
@@ -152,6 +159,8 @@ Stopping-distance experiment (Stage 1 step 6): Rival stopping distance changed f
 ## Collaboration and help
 
 **People I discussed or playtested with:**
+
+Max, Avdel and Asilbek.
 
 **Code, sources or substantive tools/AI assistance I used, and how I verified them:**
 
